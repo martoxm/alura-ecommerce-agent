@@ -39,14 +39,14 @@ public class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options)
         var result = await response.Content.ReadFromJsonAsync<N8nChatResponse>(
             cancellationToken: cancellationToken);
 
-        if (result is null || string.IsNullOrWhiteSpace(result.Answer))
-            throw new InvalidOperationException("Resposta do n8n inválida.");
-
-        return result.Answer;
+        return result is null || string.IsNullOrWhiteSpace(result.Response)
+            ? throw new InvalidOperationException("Resposta do n8n inválida.")
+            : result.Response;
     }
 
     private sealed class N8nChatResponse
     {
-        public string Answer { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public string Response { get; set; } = string.Empty;
     }
 }
