@@ -18,9 +18,4 @@
     <ProjectReference Include="..\AluraEcommerceAgent.Infrastructure\AluraEcommerceAgent.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-    <Folder Include="Exceptions\" />
-  </ItemGroup>
-
 </Project>

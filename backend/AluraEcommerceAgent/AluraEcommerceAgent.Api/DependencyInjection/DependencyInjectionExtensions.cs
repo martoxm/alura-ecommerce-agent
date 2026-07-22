@@ -15,9 +15,7 @@ public static class DependencyInjectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowFrontend", policy =>
+        services.AddCors(options => options.AddPolicy("AllowFrontend", policy =>
             {
                 policy
                     .AllowAnyHeader()
@@ -25,8 +23,7 @@ public static class DependencyInjectionExtensions
                     .AllowCredentials()
                     .WithOrigins(
                         configuration["Cors:Origin"] ?? "http://localhost:5173");
-            });
-        });
+            }));
 
         return services;
     }
