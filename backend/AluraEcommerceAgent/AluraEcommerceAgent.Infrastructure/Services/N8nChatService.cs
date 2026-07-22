@@ -1,40 +1,30 @@
 ﻿using System.Net.Http.Json;
+
 using AluraEcommerceAgent.Application.Abstractions;
-using AluraEcommerceAgent.Application.Models;
-using AluraEcommerceAgent.Infrastructure.Integrations;
+using AluraEcommerceAgent.Application.DTOs;
 using AluraEcommerceAgent.Infrastructure.Options;
 
 using Microsoft.Extensions.Options;
 
 namespace AluraEcommerceAgent.Infrastructure.Services;
 
-public sealed class N8nChatService(HttpClient httpClient, IOptionsMonitor<N8nOptions> options) : IChatService
+public sealed class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options) : IChatService
 {
-    private readonly HttpClient _httpClient = httpClient;
-    private readonly IOptionsMonitor<N8nOptions> _options = options;
+    private readonly N8nOptions _options = options.Value;
 
-    public async Task<ChatMessageResponse> SendMessageAsync(
-        ChatMessageRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<ChatResponseDto> SendAsync(ChatRequestDto request, CancellationToken cancellationToken = default)
     {
-        var payload = new N8nChatRequest
+        var payload = new
         {
-            SessionId = request.SessionId,
-            Message = request.Message
+            message = request.Message,
+            sessionId = request.SessionId
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            _options.CurrentValue.WebhookUrl,
-            payload,
-            cancellationToken);
-
+        var response = await httpClient.PostAsJsonAsync(_options.WebhookUrl, payload, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<N8nChatResponse>(cancellationToken);
+        var body = await response.Content.ReadFromJsonAsync<ChatResponseDto>(cancellationToken: cancellationToken);
 
-        return new ChatMessageResponse
-        {
-            Response = result?.Response ?? string.Empty
-        };
+        return body ?? new ChatResponseDto("Nenhuma resposta foi retornada pelo fluxo do n8n.", request.SessionId);
     }
 }
