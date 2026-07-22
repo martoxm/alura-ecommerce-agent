@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace AluraEcommerceAgent.Infrastructure.Services;
 
-public sealed class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options) : IChatService
+public sealed class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options) : IChatUseCase
 {
     private readonly N8nOptions _options = options.Value;
 

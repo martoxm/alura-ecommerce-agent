@@ -7,7 +7,7 @@ namespace AluraEcommerceAgent.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public sealed class ChatController(IChatService chatService) : ControllerBase
+public sealed class ChatController(IChatUseCase chatService) : ControllerBase
 {
     [HttpPost]
     [ProducesResponseType(typeof(ChatResponseDto), StatusCodes.Status200OK)]

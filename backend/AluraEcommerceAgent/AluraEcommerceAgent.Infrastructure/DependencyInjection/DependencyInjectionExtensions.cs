@@ -12,7 +12,7 @@ public static class DependencyInjectionExtensions
     {
         services.Configure<N8nOptions>(configuration.GetSection(N8nOptions.SectionName));
 
-        services.AddHttpClient<IChatService, N8nChatService>();
+        services.AddHttpClient<IChatUseCase, N8nChatService>();
 
         return services;
     }

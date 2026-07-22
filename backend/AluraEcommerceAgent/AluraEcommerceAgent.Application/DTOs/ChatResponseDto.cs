@@ -1,3 +1,6 @@
 ﻿namespace AluraEcommerceAgent.Application.DTOs;
 
-public sealed record ChatResponseDto(string Answer, string? SessionId = null);
+public class ChatResponseDto
+{
+    public string Answer { get; set; } = string.Empty;
+}
