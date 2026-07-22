@@ -1,10 +1,8 @@
-﻿using AluraEcommerceAgent.Application.Models;
+﻿using AluraEcommerceAgent.Application.DTOs;
 
 namespace AluraEcommerceAgent.Application.Abstractions;
 
 public interface IChatService
 {
-    Task<ChatMessageResponse> SendMessageAsync(
-        ChatMessageRequest request,
-        CancellationToken cancellationToken = default);
+    Task<ChatResponseDto> SendAsync(ChatRequestDto request, CancellationToken cancellationToken = default);
 }
