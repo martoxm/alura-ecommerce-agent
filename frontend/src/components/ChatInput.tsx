@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 type Props = {
   onSend: (message: string) => void;
@@ -8,7 +8,7 @@ type Props = {
 export default function ChatInput({ onSend, disabled = false }: Props) {
   const [value, setValue] = useState("");
 
-  const submit = (e?: React.FormEvent) => {
+  const submit = (e?: FormEvent) => {
     e?.preventDefault();
     const txt = value.trim();
     if (!txt) return;

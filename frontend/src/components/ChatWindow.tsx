@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Message } from "../types/chat";
 import ChatMessage from "./ChatMessage";
 
@@ -30,6 +30,7 @@ export default function ChatWindow({ messages, loading, error }: Props) {
         {messages.map((m) => (
           <ChatMessage key={m.id} msg={m} />
         ))}
+
         {loading && (
           <div className="mr-auto bg-gray-100 rounded-lg p-3 my-2 text-gray-700">
             Typing...
