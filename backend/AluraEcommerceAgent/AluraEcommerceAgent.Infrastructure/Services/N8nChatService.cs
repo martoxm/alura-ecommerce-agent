@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Json;
 
-using AluraEcommerceAgent.Domain.Entities;
 using AluraEcommerceAgent.Domain.Interfaces;
 using AluraEcommerceAgent.Infrastructure.Options;
 
@@ -13,20 +12,15 @@ public class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options)
     private readonly HttpClient _httpClient = httpClient;
     private readonly N8nOptions _options = options.Value;
 
-    public async Task<string> SendMessageAsync(
+    public async Task<(string SessionId, string Response)> SendMessageAsync(
+        string? sessionId,
         string userMessage,
-        IEnumerable<ChatMessage> history,
         CancellationToken cancellationToken = default)
     {
         var payload = new
         {
-            message = userMessage,
-            history = history.Select(x => new
-            {
-                role = x.Role,
-                content = x.Content,
-                createdAt = x.CreatedAt
-            })
+            sessionId,
+            message = userMessage
         };
 
         var response = await _httpClient.PostAsJsonAsync(
@@ -39,9 +33,10 @@ public class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options)
         var result = await response.Content.ReadFromJsonAsync<N8nChatResponse>(
             cancellationToken: cancellationToken);
 
-        return result is null || string.IsNullOrWhiteSpace(result.Response)
-            ? throw new InvalidOperationException("Resposta do n8n inválida.")
-            : result.Response;
+        if (result is null || string.IsNullOrWhiteSpace(result.Response))
+            throw new InvalidOperationException("Resposta do n8n inválida.");
+
+        return (result.SessionId, result.Response);
     }
 
     private sealed class N8nChatResponse

@@ -1,4 +1,5 @@
-﻿using AluraEcommerceAgent.Domain.Interfaces;
+﻿using AluraEcommerceAgent.Application.Abstractions;
+using AluraEcommerceAgent.Domain.Interfaces;
 using AluraEcommerceAgent.Infrastructure.Options;
 using AluraEcommerceAgent.Infrastructure.Services;
 

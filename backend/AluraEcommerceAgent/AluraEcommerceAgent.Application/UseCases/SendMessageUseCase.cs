@@ -1,26 +1,21 @@
 ﻿using AluraEcommerceAgent.Application.Abstractions;
 using AluraEcommerceAgent.Application.DTOs;
-using AluraEcommerceAgent.Domain.Entities;
 using AluraEcommerceAgent.Domain.Interfaces;
 
 using FluentValidation;
 
 namespace AluraEcommerceAgent.Application.UseCases;
 
-public class SendMessageUseCase : IChatUseCase
+public class SendMessageUseCase(
+    IChatService chatService,
+    IValidator<ChatRequestDto> validator) : IChatUseCase
 {
-    private readonly IChatService _chatService;
-    private readonly IValidator<ChatRequestDto> _validator;
+    private readonly IChatService _chatService = chatService;
+    private readonly IValidator<ChatRequestDto> _validator = validator;
 
-    public SendMessageUseCase(
-        IChatService chatService,
-        IValidator<ChatRequestDto> validator)
-    {
-        _chatService = chatService;
-        _validator = validator;
-    }
-
-    public async Task<ChatResponseDto> ExecuteAsync(ChatRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<ChatResponseDto> ExecuteAsync(
+        ChatRequestDto request,
+        CancellationToken cancellationToken = default)
     {
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
 
@@ -30,15 +25,15 @@ public class SendMessageUseCase : IChatUseCase
             throw new ValidationException(errors, validationResult.Errors);
         }
 
-        var history = request.History
-            .Select(x => ChatMessage.Create(x.Role, x.Content))
-            .ToList();
-
-        var answer = await _chatService.SendMessageAsync(request.Message, history, cancellationToken);
+        var (sessionId, response) = await _chatService.SendMessageAsync(
+            request.SessionId,
+            request.Message,
+            cancellationToken);
 
         return new ChatResponseDto
         {
-            Answer = answer
+            SessionId = sessionId,
+            Answer = response
         };
     }
 }
