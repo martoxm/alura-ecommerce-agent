@@ -1,4 +1,5 @@
 using AluraEcommerceAgent.Api.DependencyInjection;
+using AluraEcommerceAgent.Api.Middlewares;
 using AluraEcommerceAgent.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

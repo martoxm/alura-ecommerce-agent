@@ -1,43 +1,24 @@
 ﻿using AluraEcommerceAgent.Application.Abstractions;
 using AluraEcommerceAgent.Application.DTOs;
 
-using FluentValidation;
-
 using Microsoft.AspNetCore.Mvc;
 
 namespace AluraEcommerceAgent.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ChatController(IChatUseCase chatUseCase) : ControllerBase
+public class ChatController : ControllerBase
 {
-    private readonly IChatUseCase _chatUseCase = chatUseCase;
-
     [HttpPost]
     [ProducesResponseType(typeof(ChatResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Post(
         [FromBody] ChatRequestDto request,
+        [FromServices] IChatUseCase chatUseCase,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var response = await _chatUseCase.ExecuteAsync(request, cancellationToken);
-            return Ok(response);
-        }
-        catch (ValidationException ex)
-        {
-            var errors = ex.Errors.Select(x => new
-            {
-                Field = x.PropertyName,
-                Error = x.ErrorMessage
-            });
-
-            return BadRequest(new
-            {
-                Message = "Validation failed.",
-                Errors = errors
-            });
-        }
+        var response = await chatUseCase.ExecuteAsync(request, cancellationToken);
+        return Ok(response);
     }
 }

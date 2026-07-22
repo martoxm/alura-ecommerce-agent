@@ -5,8 +5,6 @@ using AluraEcommerceAgent.Application.Validators;
 
 using FluentValidation;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace AluraEcommerceAgent.Api.DependencyInjection;
 
 public static class ApiServiceCollectionExtensions
