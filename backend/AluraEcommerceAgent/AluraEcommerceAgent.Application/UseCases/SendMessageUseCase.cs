@@ -32,7 +32,7 @@ public class SendMessageUseCase(
 
         return new ChatResponseDto
         {
-            SessionId = sessionId,
+            SessionId = sessionId ?? string.Empty,
             Answer = response
         };
     }
