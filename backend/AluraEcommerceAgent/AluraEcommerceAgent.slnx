@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AluraEcommerceAgent.Api/AluraEcommerceAgent.Api.csproj" />
+  <Project Path="AluraEcommerceAgent.Application/AluraEcommerceAgent.Application.csproj" />
+  <Project Path="AluraEcommerceAgent.Domain/AluraEcommerceAgent.Domain.csproj" />
+  <Project Path="AluraEcommerceAgent.Infrastructure/AluraEcommerceAgent.Infrastructure.csproj" />
+</Solution>
