@@ -1,30 +1,52 @@
 ﻿using System.Net.Http.Json;
 
-using AluraEcommerceAgent.Application.Abstractions;
-using AluraEcommerceAgent.Application.DTOs;
+using AluraEcommerceAgent.Domain.Entities;
+using AluraEcommerceAgent.Domain.Interfaces;
 using AluraEcommerceAgent.Infrastructure.Options;
 
 using Microsoft.Extensions.Options;
 
 namespace AluraEcommerceAgent.Infrastructure.Services;
 
-public sealed class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options) : IChatUseCase
+public class N8nChatService(HttpClient httpClient, IOptions<N8nOptions> options) : IChatService
 {
+    private readonly HttpClient _httpClient = httpClient;
     private readonly N8nOptions _options = options.Value;
 
-    public async Task<ChatResponseDto> SendAsync(ChatRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<string> SendMessageAsync(
+        string userMessage,
+        IEnumerable<ChatMessage> history,
+        CancellationToken cancellationToken = default)
     {
         var payload = new
         {
-            message = request.Message,
-            sessionId = request.SessionId
+            message = userMessage,
+            history = history.Select(x => new
+            {
+                role = x.Role,
+                content = x.Content,
+                createdAt = x.CreatedAt
+            })
         };
 
-        var response = await httpClient.PostAsJsonAsync(_options.WebhookUrl, payload, cancellationToken);
+        var response = await _httpClient.PostAsJsonAsync(
+            _options.ChatWebhookPath,
+            payload,
+            cancellationToken);
+
         response.EnsureSuccessStatusCode();
 
-        var body = await response.Content.ReadFromJsonAsync<ChatResponseDto>(cancellationToken: cancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<N8nChatResponse>(
+            cancellationToken: cancellationToken);
 
-        return body ?? new ChatResponseDto("Nenhuma resposta foi retornada pelo fluxo do n8n.", request.SessionId);
+        if (result is null || string.IsNullOrWhiteSpace(result.Answer))
+            throw new InvalidOperationException("Resposta do n8n inválida.");
+
+        return result.Answer;
+    }
+
+    private sealed class N8nChatResponse
+    {
+        public string Answer { get; set; } = string.Empty;
     }
 }
