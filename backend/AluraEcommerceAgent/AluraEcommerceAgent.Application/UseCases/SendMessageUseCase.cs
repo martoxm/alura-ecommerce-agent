@@ -25,14 +25,18 @@ public class SendMessageUseCase(
             throw new ValidationException(errors, validationResult.Errors);
         }
 
-        var (sessionId, response) = await _chatService.SendMessageAsync(
-            request.SessionId,
+        var sessionId = string.IsNullOrWhiteSpace(request.SessionId)
+            ? Guid.NewGuid().ToString()
+            : request.SessionId;
+
+        var (returnedSessionId, response) = await _chatService.SendMessageAsync(
+            sessionId,
             request.Message,
             cancellationToken);
 
         return new ChatResponseDto
         {
-            SessionId = sessionId ?? string.Empty,
+            SessionId = returnedSessionId ?? sessionId,
             Answer = response
         };
     }
