@@ -5,18 +5,12 @@ using FluentValidation;
 
 namespace AluraEcommerceAgent.Api.Middlewares;
 
-public class ExceptionHandlingMiddleware
+public class ExceptionHandlingMiddleware(
+    RequestDelegate next,
+    ILogger<ExceptionHandlingMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-    public ExceptionHandlingMiddleware(
-        RequestDelegate next,
-        ILogger<ExceptionHandlingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
+    private readonly RequestDelegate _next = next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -28,12 +22,16 @@ public class ExceptionHandlingMiddleware
         {
             _logger.LogWarning(ex, "Validation error");
 
-            context.Response.ContentType = "application/json";
+            if (context.Response.HasStarted)
+                throw;
+
+            context.Response.Clear();
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "application/json; charset=utf-8";
 
             var response = new
             {
-                message = "Validation failed.",
+                message = "Não foi possível processar sua solicitação no momento.",
                 errors = ex.Errors.Select(x => new
                 {
                     field = x.PropertyName,
@@ -47,12 +45,16 @@ public class ExceptionHandlingMiddleware
         {
             _logger.LogError(ex, "Unhandled error");
 
-            context.Response.ContentType = "application/json";
+            if (context.Response.HasStarted)
+                throw;
+
+            context.Response.Clear();
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.ContentType = "application/json; charset=utf-8";
 
             var response = new
             {
-                message = "An unexpected error occurred."
+                message = "Ocorreu um erro inesperado."
             };
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(response));
