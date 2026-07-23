@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
 type Props = {
   onSend: (message: string) => void;
@@ -8,7 +8,7 @@ type Props = {
 export default function ChatInput({ onSend, disabled = false }: Props) {
   const [value, setValue] = useState("");
 
-  const submit = (e: FormEvent) => {
+  const submit = (e: SubmitEvent) => {
     e.preventDefault();
     const text = value.trim();
     if (!text || disabled) return;
@@ -37,7 +37,7 @@ export default function ChatInput({ onSend, disabled = false }: Props) {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                submit(e);
+                submit(e as unknown as SubmitEvent);
               }
             }}
           />
