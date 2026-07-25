@@ -21,11 +21,12 @@ export default function ChatInput({ onSend, disabled = false }: Props) {
       onSubmit={submit}
       className="border-t border-slate-200/70 bg-white/70 p-3 dark:border-slate-800 dark:bg-slate-950/60 sm:p-4"
     >
-      <div className="mx-auto flex w-full max-w-4xl items-end gap-3">
-        <div className="flex-1">
+      <div className="mx-auto flex w-full max-w-4xl gap-3">
+        <div className="flex min-w-0 flex-1 flex-col">
           <label htmlFor="chat-message" className="sr-only">
             Digite sua mensagem
           </label>
+
           <textarea
             id="chat-message"
             rows={1}
@@ -41,6 +42,7 @@ export default function ChatInput({ onSend, disabled = false }: Props) {
               }
             }}
           />
+
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             Pressione Enter para enviar ou Shift + Enter para quebrar linha.
           </p>
@@ -49,7 +51,7 @@ export default function ChatInput({ onSend, disabled = false }: Props) {
         <button
           type="submit"
           disabled={disabled || !value.trim()}
-          className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+          className="mt-0,6 inline-flex h-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
         >
           Enviar
         </button>
