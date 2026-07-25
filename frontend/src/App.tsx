@@ -82,8 +82,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white/80 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/70">
+    <div className="h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white/80 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/70">
         <header className="border-b border-slate-200/70 bg-white/60 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/50 sm:px-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
