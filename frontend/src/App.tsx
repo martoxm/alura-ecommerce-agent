@@ -8,6 +8,17 @@ import { v4 as uuidv4 } from "uuid";
 const THEME_KEY = "alura_theme";
 const SESSION_KEY = "alura_session";
 
+const suggestions = [
+  "Atendimento ao cliente, canais oficiais e horários.",
+  "Rastreamento de pedidos, status de envio e ocorrências.",
+  "Frete, transportadoras parceiras e prazos de entrega.",
+  "Pagamentos, cupons e emissão de NF-e.",
+  "Trocas, devoluções, arrependimento e reembolso.",
+  "LGPD, privacidade e segurança de dados.",
+  "Prevenção a fraudes, cancelamentos e exceções operacionais.",
+  "Cadastro, validação de dados e regras de loja/checkout.",
+];
+
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(() => {
@@ -81,10 +92,16 @@ export default function App() {
     setError(null);
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    window.dispatchEvent(
+      new CustomEvent("chat-suggestion", { detail: suggestion }),
+    );
+  };
+
   return (
     <div className="h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white/80 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/70">
-        <header className="border-b border-slate-200/70 bg-white/60 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/50 sm:px-6">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/70">
+        <header className="border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950/50 sm:px-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-600 dark:text-sky-400">
@@ -94,9 +111,22 @@ export default function App() {
                 Assistente interno de e-commerce
               </h1>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                Tire dúvidas sobre trocas, devoluções, pedidos, logística e
-                processos internos.
+                Olá! Posso ajudar com dúvidas internas da operação da TechStore
+                Brasil, como:
               </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {suggestions.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleSuggestionClick(item)}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
