@@ -88,7 +88,7 @@ export default function App() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-600 dark:text-sky-400">
-                AluraEcommerceAgent
+                TechStore Brasil
               </p>
               <h1 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">
                 Assistente interno de e-commerce
