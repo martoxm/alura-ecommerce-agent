@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ChatWindow from "./components/ChatWindow";
+import Footer from "./components/Footer";
 import ChatInput from "./components/ChatInput";
 import { sendMessage } from "./services/chatService";
 import type { Message, ChatRequest } from "./types/chat";
@@ -126,6 +127,7 @@ export default function App() {
           <ChatWindow messages={messages} loading={loading} error={error} />
           <ChatInput onSend={handleSend} disabled={loading} />
         </main>
+        <Footer />
       </div>
     </div>
   );
