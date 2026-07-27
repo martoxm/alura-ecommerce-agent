@@ -1,0 +1,197 @@
+{
+  "name": "[PROD] KB - Ingestao PDFs - v1",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "e7ecca02-bc7a-46aa-9ebe-149eb694f638",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/.n8n-files/pdfs/*.pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -16
+      ],
+      "id": "50085d0a-f67e-442f-9832-dcc4b51c4a29",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "5c977cd3-f7e9-4609-9e20-db49f5f47461",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "mode": "list",
+          "value": "ecommerce_docs"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        -16
+      ],
+      "id": "a8667085-6963-496e-b62d-ad2ede252fed",
+      "name": "Qdrant Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "4TZT04haL0TYtHxg",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-multilingual-light-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        912,
+        208
+      ],
+      "id": "181994b2-1578-4dbc-a866-790d6ffb5f04",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "KdGlqVGA5ofbBUUv",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        208
+      ],
+      "id": "abf47ed8-309a-44b8-8a89-641c11b00283",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_CHARS = 700;\nconst OVERLAP_CHARS = 120;\n\nfunction cleanText(text) {\n  return (text || \"\")\n    .replace(/\\r/g, \"\\n\")\n    .replace(/[ \\t]+/g, \" \")\n    .replace(/\\n{3,}/g, \"\\n\\n\")\n    .replace(/TechStore Brasil • Uso Exclusivo Interno Página \\d+ de \\d+/gi, \"\")\n    .replace(/CONFIDENCIAL E DE USO INTERNO:[^\\n]*/gi, \"\")\n    .replace(/\\[mailto:([^\\]]+)\\]\\(mailto:[^)]+\\)/gi, \"$1\")\n    .trim();\n}\n\nfunction getLines(text) {\n  return text\n    .split(\"\\n\")\n    .map(l => l.trim())\n    .filter(Boolean);\n}\n\nfunction extractDocCode(text) {\n  const lines = getLines(text);\n  const firstLine = lines[0] || \"\";\n  const match = firstLine.match(/\\b([A-Z]{3}-\\d{3})\\b/);\n  if (match) return match[1];\n\n  const fallback = text.match(/\\b([A-Z]{3}-\\d{3})\\b/);\n  return fallback ? fallback[1] : \"DOC-SEM-CODIGO\";\n}\n\nfunction extractCategory(text) {\n  const lines = getLines(text);\n  if (lines.length >= 2) return lines[1];\n  return \"SEM_CATEGORIA\";\n}\n\nfunction extractTitle(item, text) {\n  const lines = getLines(text);\n\n  if (item.info && item.info.Title) {\n    return item.info.Title.trim();\n  }\n\n  if (lines.length >= 3) return lines[2];\n  return \"Documento sem título\";\n}\n\nfunction extractSubtitle(text, title) {\n  const lines = getLines(text);\n  const idx = lines.findIndex(line => line === title);\n  if (idx >= 0 && lines[idx + 1]) return lines[idx + 1];\n  return \"\";\n}\n\nfunction splitBySections(text) {\n  const regex = /(^|\\n)(\\d+\\.\\s+[^\\n]+)/g;\n  const matches = [...text.matchAll(regex)];\n\n  if (matches.length === 0) {\n    return [{ section: \"Conteúdo Geral\", content: text }];\n  }\n\n  const sections = [];\n\n  for (let i = 0; i < matches.length; i++) {\n    const start = matches[i].index + (matches[i][1] ? matches[i][1].length : 0);\n    const end = i + 1 < matches.length ? matches[i + 1].index : text.length;\n    const block = text.slice(start, end).trim();\n\n    const sectionTitleMatch = block.match(/^(\\d+\\.\\s+[^\\n]+)/);\n    const sectionTitle = sectionTitleMatch ? sectionTitleMatch[1].trim() : `Seção ${i + 1}`;\n\n    sections.push({\n      section: sectionTitle,\n      content: block\n    });\n  }\n\n  return sections;\n}\n\nfunction chunkText(text, maxChars, overlapChars) {\n  const paragraphs = text\n    .split(/\\n+/)\n    .map(p => p.trim())\n    .filter(Boolean);\n\n  const chunks = [];\n  let current = \"\";\n\n  for (const paragraph of paragraphs) {\n    const candidate = current ? `${current}\\n${paragraph}` : paragraph;\n\n    if (candidate.length <= maxChars) {\n      current = candidate;\n      continue;\n    }\n\n    if (current) {\n      chunks.push(current.trim());\n    }\n\n    if (paragraph.length <= maxChars) {\n      current = paragraph;\n      continue;\n    }\n\n    let start = 0;\n    while (start < paragraph.length) {\n      const end = start + maxChars;\n      const slice = paragraph.slice(start, end).trim();\n      if (slice) chunks.push(slice);\n\n      if (end >= paragraph.length) break;\n      start += maxChars - overlapChars;\n    }\n\n    current = \"\";\n  }\n\n  if (current) {\n    chunks.push(current.trim());\n  }\n\n  return chunks;\n}\n\nfunction buildSearchableText(title, category, doc_code, section, chunk) {\n  return `${title}. ${category}. ${doc_code}. ${section}. ${chunk}`;\n}\n\nconst output = [];\n\nfor (const item of items) {\n  const rawText = item.json.text || \"\";\n  const cleaned = cleanText(rawText);\n\n  const doc_code = extractDocCode(cleaned);\n  const category = extractCategory(cleaned);\n  const title = extractTitle(item.json, cleaned);\n  const subtitle = extractSubtitle(cleaned, title);\n  const source_file = `${doc_code}.pdf`;\n  const total_pages = item.json.numpages || null;\n\n  const sections = splitBySections(cleaned);\n\n  let globalChunkIndex = 0;\n\n  for (const sectionData of sections) {\n    const sectionChunks = chunkText(sectionData.content, MAX_CHARS, OVERLAP_CHARS);\n\n    for (let i = 0; i < sectionChunks.length; i++) {\n      const content = sectionChunks[i];\n      const searchable_text = buildSearchableText(\n        title,\n        category,\n        doc_code,\n        sectionData.section,\n        content\n      );\n\n      output.push({\n        json: {\n          doc_code,\n          title,\n          subtitle,\n          category,\n          section: sectionData.section,\n          chunk_index: globalChunkIndex,\n          section_chunk_index: i,\n          source_file,\n          total_pages,\n          content,\n          content_length: content.length,\n          searchable_text\n        }\n      });\n\n      globalChunkIndex++;\n    }\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -16
+      ],
+      "id": "3dd6d5ee-3e97-47fd-aeb3-9ae614a466ae",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b7c9576f-4bca-43e8-9dd2-48f573445e5b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d3252c5778b261d26beeb3bbe23e37ab6068833a58353254570ee2314c80365f"
+  },
+  "nodeGroups": [],
+  "id": "Xm7cf4oJZDgHzPBk",
+  "tags": []
+}
