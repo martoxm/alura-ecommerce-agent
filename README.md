@@ -207,7 +207,7 @@ Exemplo de organização de subdomínios:
 ### 1. Clonar o repositório
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/martoxm/alura-ecommerce-agent
 cd alura-ecommerce-agent
 ```
 
