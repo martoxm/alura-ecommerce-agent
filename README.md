@@ -4,6 +4,8 @@ Agente de IA corporativo para colaboradores de e-commerce, desenvolvido para o *
 
 Permite que colaboradores consultem processos e procedimentos internos em linguagem natural — atendimento, logística, pagamentos, trocas, devoluções, antifraude, LGPD e regras operacionais — com base em documentos PDF internos da empresa.
 
+Veja o agente funcionando: https://colab.martodev.online/
+
 ## Arquitetura
 
 | Camada           | Tecnologia                   | Responsabilidade                  |
