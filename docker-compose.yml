@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: alura-ecommerce-backend
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    ports:
+      - "127.0.0.1:7006:8080"
+    networks:
+      - alura-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://api-colab.martodev.online
+    container_name: alura-ecommerce-frontend
+    restart: always
+    ports:
+      - "127.0.0.1:3001:80"
+    depends_on:
+      - backend
+    networks:
+      - alura-network
+
+networks:
+  alura-network:
+    driver: bridge
